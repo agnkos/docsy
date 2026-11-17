@@ -1,0 +1,4 @@
+/* Striping is index-based: with virtualization, :nth-child parity changes as rows are recycled. */
+.row[data-odd]:not(:hover) {
+  background-color: var(--mantine-color-lime-0);
+}

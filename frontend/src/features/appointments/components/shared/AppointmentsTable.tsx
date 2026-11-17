@@ -1,5 +1,6 @@
 import { rowSortingFeature, tableFeatures, useTable } from '@tanstack/react-table'
 import type { ColumnDef, OnChangeFn, SortingState } from '@tanstack/react-table'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { Center, Group, ScrollArea, Select, Table, Text, UnstyledButton } from '@mantine/core'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 
@@ -9,8 +10,8 @@ import type { AppointmentDetail } from '../../types'
 import { formatShortDate } from '../../../../utils/helpers'
 import { paths } from '../../../../app/paths'
 import ButtonLink from '../../../../components/ui/ButtonLink'
-
-// import classes from './AppointmetsTable.module.css'
+import { useState } from 'react'
+import classes from './AppointmentsTable.module.css'
 
 type AppointmentsTableProps = {
   items: AppointmentDetail[]
@@ -80,6 +81,8 @@ const columns: Array<ColumnDef<typeof features, AppointmentDetail>> = [
 
 const ariaSortValues = { asc: 'ascending', desc: 'descending' } as const
 
+const ROW_HEIGHT = 55
+
 const AppointmentsTable = ({
   items,
   total,
@@ -102,6 +105,17 @@ const AppointmentsTable = ({
     enableMultiSort: false,
     enableSortingRemoval: false,
   })
+  const [scrollParent, setScrollParent] = useState<HTMLDivElement | null>(null)
+
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => scrollParent,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 20,
+  })
+
+  const virtualItems = virtualizer.getVirtualItems()
+  const rows = table.getRowModel().rows
 
   const handleBottomReached = () => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage()
@@ -113,15 +127,13 @@ const AppointmentsTable = ({
         mah='calc(100vh - 260px)'
         type='hover'
         onBottomReached={handleBottomReached}
-        // viewportRef={setScrollParent}
+        viewportRef={setScrollParent}
       >
         <Table
           highlightOnHover
           withColumnBorders
           withRowBorders
           withTableBorder
-          striped
-          stripedColor='lime.0'
           bg='white'
           verticalSpacing='sm'
           stickyHeader
@@ -184,15 +196,47 @@ const AppointmentsTable = ({
                 </Table.Td>
               </Table.Tr>
             ) : (
-              table.getRowModel().rows.map((row) => (
-                <Table.Tr key={row.id}>
-                  {row.getAllCells().map((cell) => (
-                    <Table.Td key={cell.id}>
-                      <table.FlexRender cell={cell} />
-                    </Table.Td>
-                  ))}
-                </Table.Tr>
-              ))
+              <>
+                {virtualItems.length > 0 && (
+                  <tr aria-hidden>
+                    <td
+                      aria-hidden
+                      colSpan={columns.length}
+                      style={{ height: virtualItems[0].start, padding: 0, border: 'none' }}
+                    />
+                  </tr>
+                )}
+                {virtualItems.map((virtualRow) => {
+                  const row = rows[virtualRow.index]
+                  return (
+                    <Table.Tr
+                      key={row.id}
+                      className={classes.row}
+                      data-odd={virtualRow.index % 2 === 1 || undefined}
+                    >
+                      {row.getAllCells().map((cell) => (
+                        <Table.Td key={cell.id}>
+                          <table.FlexRender cell={cell} />
+                        </Table.Td>
+                      ))}
+                    </Table.Tr>
+                  )
+                })}
+                {virtualItems.length > 0 && (
+                  <tr aria-hidden>
+                    <td
+                      aria-hidden
+                      colSpan={columns.length}
+                      style={{
+                        height:
+                          virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end,
+                        padding: 0,
+                        border: 'none',
+                      }}
+                    />
+                  </tr>
+                )}
+              </>
             )}
           </Table.Tbody>
         </Table>
