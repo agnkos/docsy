@@ -2,9 +2,10 @@ import { apiClient } from '../../api/client'
 import type {
   Appointment,
   AppointmentDetail,
+  AppointmentsListParams,
+  AppointmentsPage,
   AvailableSlot,
   CreateAppointmentBody,
-  DoctorAppointment,
   DoctorAppointmentsParams,
   UpdateAppointmentBody,
 } from './types'
@@ -28,15 +29,21 @@ export const bookAppointment = (payload: CreateAppointmentBody) => {
 }
 
 export const getAppointments = () => {
-  return apiClient.get<Appointment[]>('/appointments').then((r) => r.data)
+  return apiClient
+    .get<AppointmentsPage>('/appointments', { params: { limit: 50 } })
+    .then((r) => r.data.items)
 }
+
+export const getAppointmentsPage = (
+  params: AppointmentsListParams & { offset: number; limit: number },
+) => apiClient.get<AppointmentsPage>('/appointments', { params }).then((r) => r.data)
 
 export const cancelAppointment = (id: string) => {
   return apiClient.patch<Appointment>(`/appointments/${id}/cancel`).then((r) => r.data)
 }
 
 export const getDoctorAppointments = (params: DoctorAppointmentsParams) =>
-  apiClient.get<DoctorAppointment[]>('/appointments/doctor', { params }).then((r) => r.data)
+  apiClient.get<AppointmentsPage>('/appointments', { params }).then((r) => r.data.items)
 
 export const getAppointmentById = (id: string) =>
   apiClient.get<AppointmentDetail>(`/appointments/${id}`).then((r) => r.data)

@@ -1,4 +1,4 @@
-import { Outlet } from '@tanstack/react-router'
+import { Outlet, useMatches } from '@tanstack/react-router'
 import { AppShell, Container } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 
@@ -17,6 +17,9 @@ const AppLayout = () => {
   const { isAuthenticated } = useAuthStore()
   const role = useAuthStore((s) => s.user?.role)
   const [collapsed, { toggle }] = useDisclosure(false)
+  const isFluid = useMatches({
+    select: (matches) => matches.some((match) => match.staticData.isFluidLayout),
+  })
 
   const hasSidebar = isAuthenticated && !!role && role !== 'PATIENT'
 
@@ -41,7 +44,7 @@ const AppLayout = () => {
         </AppShell.Navbar>
       )}
       <AppShell.Main bg={palette.background} className={classes.main}>
-        <Container className={classes.container}>
+        <Container fluid={isFluid} className={classes.container}>
           {isBootstrapping ? <LoadingSpinner /> : <Outlet />}
         </Container>
       </AppShell.Main>
