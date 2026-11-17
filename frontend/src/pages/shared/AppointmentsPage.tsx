@@ -1,6 +1,6 @@
 import { CloseButton, Stack, Text, TextInput } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
-import { X, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import AppointmentsTable from '../../features/appointments/components/shared/AppointmentsTable'

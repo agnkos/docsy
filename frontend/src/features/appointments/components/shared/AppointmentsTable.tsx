@@ -1,6 +1,6 @@
 import { rowSortingFeature, tableFeatures, useTable } from '@tanstack/react-table'
 import type { ColumnDef, OnChangeFn, SortingState } from '@tanstack/react-table'
-import { Center, Group, Select, Table, Text, UnstyledButton } from '@mantine/core'
+import { Center, Group, ScrollArea, Select, Table, Text, UnstyledButton } from '@mantine/core'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 
 import { conductedOptions, isConductedFilter } from '../../conductedFilter'
@@ -9,6 +9,8 @@ import type { AppointmentDetail } from '../../types'
 import { formatShortDate } from '../../../../utils/helpers'
 import { paths } from '../../../../app/paths'
 import ButtonLink from '../../../../components/ui/ButtonLink'
+
+// import classes from './AppointmetsTable.module.css'
 
 type AppointmentsTableProps = {
   items: AppointmentDetail[]
@@ -107,10 +109,11 @@ const AppointmentsTable = ({
 
   return (
     <>
-      <Table.ScrollContainer
-        minWidth={800}
-        maxHeight='calc(100vh - 260px)'
-        scrollAreaProps={{ onBottomReached: handleBottomReached }}
+      <ScrollArea.Autosize
+        mah='calc(100vh - 260px)'
+        type='hover'
+        onBottomReached={handleBottomReached}
+        // viewportRef={setScrollParent}
       >
         <Table
           highlightOnHover
@@ -123,6 +126,7 @@ const AppointmentsTable = ({
           verticalSpacing='sm'
           stickyHeader
           stickyHeaderOffset={0}
+          miw={800}
         >
           <Table.Thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -192,7 +196,7 @@ const AppointmentsTable = ({
             )}
           </Table.Tbody>
         </Table>
-      </Table.ScrollContainer>
+      </ScrollArea.Autosize>
       <Text size='sm' c='dimmed'>
         Showing {items.length} of {total}
       </Text>
