@@ -1,4 +1,9 @@
-import { rowSortingFeature, tableFeatures, useTable } from '@tanstack/react-table'
+import {
+  columnSizingFeature,
+  rowSortingFeature,
+  tableFeatures,
+  useTable,
+} from '@tanstack/react-table'
 import type { ColumnDef, OnChangeFn, SortingState } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Center, Group, ScrollArea, Select, Table, Text, UnstyledButton } from '@mantine/core'
@@ -25,7 +30,7 @@ type AppointmentsTableProps = {
   fetchNextPage: () => void
 }
 
-const features = tableFeatures({ rowSortingFeature })
+const features = tableFeatures({ rowSortingFeature, columnSizingFeature })
 
 const columns: Array<ColumnDef<typeof features, AppointmentDetail>> = [
   {
@@ -33,18 +38,21 @@ const columns: Array<ColumnDef<typeof features, AppointmentDetail>> = [
     accessorFn: (row) => row.patient.user.firstName,
     header: 'First name',
     cell: (info) => <p>{info.getValue<string>()}</p>,
+    // size: 150,
   },
   {
     id: 'lastName',
     accessorFn: (row) => row.patient.user.lastName,
     header: 'Last name',
     cell: (info) => <p>{info.getValue<string>()}</p>,
+    // size: 170,
   },
   {
     id: 'date',
     accessorFn: (row) => row.slot.date,
     header: 'Date',
     cell: (info) => <p>{formatShortDate(info.getValue<string>())}</p>,
+    // size: 120,
   },
   {
     id: 'conducted',
@@ -52,6 +60,7 @@ const columns: Array<ColumnDef<typeof features, AppointmentDetail>> = [
     header: 'Status',
     enableSorting: false,
     cell: (info) => <p>{info.getValue<boolean>() ? 'Conducted' : 'Not conducted'}</p>,
+    // size: 180,
   },
   {
     id: 'address',
@@ -76,6 +85,7 @@ const columns: Array<ColumnDef<typeof features, AppointmentDetail>> = [
         Edit
       </ButtonLink>
     ),
+    // size: 90,
   },
 ]
 
@@ -138,6 +148,7 @@ const AppointmentsTable = ({
           verticalSpacing='sm'
           stickyHeader
           stickyHeaderOffset={0}
+          w='100%'
           miw={800}
         >
           <Table.Thead>
@@ -155,6 +166,7 @@ const AppointmentsTable = ({
                   return (
                     <Table.Th
                       key={header.id}
+                      // w={header.column.columnDef.size}
                       aria-sort={sortDirection ? ariaSortValues[sortDirection] : undefined}
                     >
                       {header.isPlaceholder ? null : header.column.getCanSort() ? (

@@ -5,6 +5,7 @@ import { useAppointmentsFilterStore } from '../../../../stores/appointmentsFilte
 
 export const Route = createFileRoute('/_auth/dashboard/_doctor/appointments')({
   component: AppointmentsPage,
+  staticData: { isFluidLayout: true },
   beforeLoad: ({ preload }) => {
     if (preload) return
 

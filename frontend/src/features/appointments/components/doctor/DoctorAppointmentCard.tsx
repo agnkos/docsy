@@ -34,7 +34,7 @@ const DoctorAppointmentCard = ({ appointment, variant }: DoctorAppointmentCardPr
         </Flex>
       </Card.Section>
       <Card.Section inheritPadding px='18' flex={1}>
-        <Group justify='space-between'>
+        <Group justify='space-between' className={classes.cardContent}>
           <Box>
             <Group gap='2'>
               <Text fw='600'>
@@ -45,7 +45,7 @@ const DoctorAppointmentCard = ({ appointment, variant }: DoctorAppointmentCardPr
               {appointment.slot.address}
             </Text>
           </Box>
-          <Box>
+          <Box className={classes.editButton}>
             <ButtonLink
               leftSection={<Pencil size={16} />}
               variant='light'
