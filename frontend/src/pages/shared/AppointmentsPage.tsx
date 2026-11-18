@@ -1,4 +1,4 @@
-import { CloseButton, Stack, Text, TextInput } from '@mantine/core'
+import { Checkbox, CloseButton, Group, Stack, Text, TextInput } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
 import { Search } from 'lucide-react'
 
@@ -9,33 +9,74 @@ import { conductedParams } from '../../features/appointments/conductedFilter'
 import { toSortParams } from '../../features/appointments/sorting'
 import { palette } from '../../styles/colors'
 import { useAppointmentsFilterStore } from '../../stores/appointmentsFilterStore'
+import { useAuthStore } from '../../stores/authStore'
 
 const SEARCH_DEBOUNCE_MS = 300
 
 const AppointmentsPage = () => {
-  const { search, setSearch, conducted, setConducted, sorting, setSorting, reset } =
-    useAppointmentsFilterStore()
+  const isAdmin = useAuthStore((state) => state.user?.role === 'ADMIN')
+  const {
+    search,
+    setSearch,
+    doctorSearch,
+    setDoctorSearch,
+    showCancelled,
+    setShowCancelled,
+    conducted,
+    setConducted,
+    sorting,
+    setSorting,
+  } = useAppointmentsFilterStore()
   const [debouncedSearch] = useDebouncedValue(search, SEARCH_DEBOUNCE_MS)
+  const [debouncedDoctorSearch] = useDebouncedValue(doctorSearch, SEARCH_DEBOUNCE_MS)
 
   const { data, isPending, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useInfiniteAppointments({
       search: debouncedSearch.trim() || undefined,
+      doctor: isAdmin ? debouncedDoctorSearch.trim() || undefined : undefined,
+      cancelled: isAdmin && !showCancelled ? false : undefined,
       conducted: conductedParams[conducted],
       ...toSortParams(sorting),
     })
 
   return (
     <Stack flex={1} mih={0}>
-      <TextInput
-        aria-label='Search appointments by patient name'
-        value={search}
-        onChange={(event) => setSearch(event.currentTarget.value)}
-        placeholder='Search by patient name...'
-        leftSection={<Search size={16} />}
-        rightSection={search ? <CloseButton size={16} onClick={() => reset()} /> : null}
-        rightSectionPointerEvents='all'
-        w={{ base: '100%', sm: 360 }}
-      />
+      <Group align='flex-end' justify='space-between'>
+        <Group align='flex-end'>
+          <TextInput
+            label='Patient'
+            value={search}
+            onChange={(event) => setSearch(event.currentTarget.value)}
+            placeholder='Search by patient name...'
+            leftSection={<Search size={16} />}
+            rightSection={search ? <CloseButton size={16} onClick={() => setSearch('')} /> : null}
+            rightSectionPointerEvents='all'
+            w={{ base: '100%', sm: 300 }}
+          />
+          {isAdmin && (
+            <TextInput
+              label='Doctor'
+              value={doctorSearch}
+              onChange={(event) => setDoctorSearch(event.currentTarget.value)}
+              placeholder='Search by doctor name...'
+              leftSection={<Search size={16} />}
+              rightSection={
+                doctorSearch ? <CloseButton size={16} onClick={() => setDoctorSearch('')} /> : null
+              }
+              rightSectionPointerEvents='all'
+              w={{ base: '100%', sm: 300 }}
+            />
+          )}
+        </Group>
+        {isAdmin && (
+          <Checkbox
+            label='Show cancelled'
+            checked={showCancelled}
+            onChange={(event) => setShowCancelled(event.currentTarget.checked)}
+            mb={8}
+          />
+        )}
+      </Group>
       {isPending ? (
         <LoadingSpinner />
       ) : isError ? (
@@ -44,6 +85,7 @@ const AppointmentsPage = () => {
         <AppointmentsTable
           items={data.pages.flatMap((page) => page.items)}
           total={data.pages[0].total}
+          isAdmin={isAdmin}
           sorting={sorting}
           onSortingChange={setSorting}
           conducted={conducted}

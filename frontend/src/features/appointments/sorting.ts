@@ -5,8 +5,10 @@ import type { AppointmentSortBy, AppointmentsListParams } from './types'
 export const DEFAULT_SORTING: SortingState = [{ id: 'date', desc: true }]
 
 const sortByColumnId: Partial<Record<string, AppointmentSortBy>> = {
-  firstName: 'patientFirstName',
-  lastName: 'patientLastName',
+  patientFirstName: 'patientFirstName',
+  patientLastName: 'patientLastName',
+  doctorFirstName: 'doctorFirstName',
+  doctorLastName: 'doctorLastName',
   date: 'date',
 }
 

@@ -21,6 +21,7 @@ import classes from './AppointmentsTable.module.css'
 type AppointmentsTableProps = {
   items: AppointmentDetail[]
   total: number
+  isAdmin: boolean
   sorting: SortingState
   onSortingChange: OnChangeFn<SortingState>
   conducted: ConductedFilter
@@ -32,62 +33,87 @@ type AppointmentsTableProps = {
 
 const features = tableFeatures({ rowSortingFeature, columnSizingFeature })
 
-const columns: Array<ColumnDef<typeof features, AppointmentDetail>> = [
+type AppointmentColumn = ColumnDef<typeof features, AppointmentDetail>
+
+const textCell: AppointmentColumn['cell'] = (info) => <p>{info.getValue<string>()}</p>
+
+const patientColumns: AppointmentColumn[] = [
   {
-    id: 'firstName',
+    id: 'patientFirstName',
     accessorFn: (row) => row.patient.user.firstName,
-    header: 'First name',
-    cell: (info) => <p>{info.getValue<string>()}</p>,
-    // size: 150,
+    header: 'Patient first name',
+    cell: textCell,
   },
   {
-    id: 'lastName',
+    id: 'patientLastName',
     accessorFn: (row) => row.patient.user.lastName,
-    header: 'Last name',
-    cell: (info) => <p>{info.getValue<string>()}</p>,
-    // size: 170,
+    header: 'Patient last name',
+    cell: textCell,
   },
+]
+
+const doctorColumns: AppointmentColumn[] = [
+  {
+    id: 'doctorFirstName',
+    accessorFn: (row) => row.slot.doctor.user.firstName,
+    header: 'Doctor first name',
+    cell: textCell,
+  },
+  {
+    id: 'doctorLastName',
+    accessorFn: (row) => row.slot.doctor.user.lastName,
+    header: 'Doctor last name',
+    cell: textCell,
+  },
+]
+
+const detailColumns: AppointmentColumn[] = [
   {
     id: 'date',
     accessorFn: (row) => row.slot.date,
     header: 'Date',
     cell: (info) => <p>{formatShortDate(info.getValue<string>())}</p>,
-    // size: 120,
   },
   {
     id: 'conducted',
     accessorFn: (row) => row.conducted,
     header: 'Status',
     enableSorting: false,
-    cell: (info) => <p>{info.getValue<boolean>() ? 'Conducted' : 'Not conducted'}</p>,
-    // size: 180,
+    cell: ({ row }) => {
+      const { cancelled, conducted } = row.original
+      if (cancelled) return <p>Cancelled</p>
+      return <p>{conducted ? 'Conducted' : 'Not conducted'}</p>
+    },
   },
   {
     id: 'address',
     accessorFn: (row) => row.slot.address,
     header: 'Address',
     enableSorting: false,
-    cell: (info) => <p>{info.getValue<string>()}</p>,
+    cell: textCell,
   },
   {
     id: 'edit',
     header: 'Edit',
     enableSorting: false,
-    cell: ({ row }) => (
-      <ButtonLink
-        size='compact-md'
-        px={14}
-        fw={500}
-        to={paths.APPOINTMENT}
-        params={{ appointmentId: row.original.id }}
-        state={{ fromTable: true }}
-      >
-        Edit
-      </ButtonLink>
-    ),
-    // size: 90,
+    cell: ({ row }) =>
+      row.original.cancelled ? null : (
+        <ButtonLink
+          size='compact-md'
+          px={14}
+          fw={500}
+          to={paths.APPOINTMENT}
+          params={{ appointmentId: row.original.id }}
+          state={{ fromTable: true }}
+        >
+          Edit
+        </ButtonLink>
+      ),
   },
 ]
+
+const staffColumns = [...patientColumns, ...detailColumns]
+const adminColumns = [...patientColumns, ...doctorColumns, ...detailColumns]
 
 const ariaSortValues = { asc: 'ascending', desc: 'descending' } as const
 
@@ -96,6 +122,7 @@ const ROW_HEIGHT = 55
 const AppointmentsTable = ({
   items,
   total,
+  isAdmin,
   sorting,
   onSortingChange,
   conducted,
@@ -104,6 +131,7 @@ const AppointmentsTable = ({
   isFetchingNextPage,
   fetchNextPage,
 }: AppointmentsTableProps) => {
+  const columns = isAdmin ? adminColumns : staffColumns
   const table = useTable({
     key: 'appointments-table',
     features,
