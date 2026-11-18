@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import {
   columnSizingFeature,
   rowSortingFeature,
@@ -15,7 +16,6 @@ import type { AppointmentDetail } from '../../types'
 import { formatShortDate } from '../../../../utils/helpers'
 import { paths } from '../../../../app/paths'
 import ButtonLink from '../../../../components/ui/ButtonLink'
-import { useState } from 'react'
 import classes from './AppointmentsTable.module.css'
 
 type AppointmentsTableProps = {
@@ -155,18 +155,17 @@ const AppointmentsTable = ({
   const virtualItems = virtualizer.getVirtualItems()
   const rows = table.getRowModel().rows
 
-  const handleBottomReached = () => {
-    if (hasNextPage && !isFetchingNextPage) fetchNextPage()
-  }
+  // State-based instead of ScrollArea's onBottomReached, which only fires on a scroll transition
+  // and is missed when the list changes while the viewport is already at the bottom
+  const lastVisibleIndex = virtualItems.at(-1)?.index
+  useEffect(() => {
+    if (lastVisibleIndex === undefined) return
+    if (lastVisibleIndex >= items.length - 1 && hasNextPage && !isFetchingNextPage) fetchNextPage()
+  }, [lastVisibleIndex, items.length, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   return (
     <>
-      <ScrollArea.Autosize
-        mah='calc(100vh - 260px)'
-        type='hover'
-        onBottomReached={handleBottomReached}
-        viewportRef={setScrollParent}
-      >
+      <ScrollArea.Autosize mah='calc(100vh - 260px)' type='hover' viewportRef={setScrollParent}>
         <Table
           highlightOnHover
           withColumnBorders
