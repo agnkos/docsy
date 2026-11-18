@@ -2,3 +2,8 @@
 .row[data-odd]:not(:hover) {
   background-color: var(--mantine-color-lime-0);
 }
+
+.scrollbar {
+  z-index: 5;
+  margin-top: 54px;
+}

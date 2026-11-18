@@ -165,7 +165,12 @@ const AppointmentsTable = ({
 
   return (
     <>
-      <ScrollArea.Autosize mah='calc(100vh - 260px)' type='hover' viewportRef={setScrollParent}>
+      <ScrollArea.Autosize
+        mah='calc(100vh - 260px)'
+        type='hover'
+        viewportRef={setScrollParent}
+        classNames={{ scrollbar: classes.scrollbar }}
+      >
         <Table
           highlightOnHover
           withColumnBorders
