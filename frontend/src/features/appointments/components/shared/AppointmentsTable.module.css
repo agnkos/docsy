@@ -1,3 +1,41 @@
+.table td {
+  position: relative;
+}
+
+.table th:not(:first-child)::before,
+.table td:not(:first-child)::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 1px;
+  background-color: var(--table-border-color);
+}
+
+.table td:not(:first-child) {
+  border-inline-start: none;
+}
+
+.table td:not(:last-child) {
+  border-inline-end: none;
+}
+
+.row {
+  height: 51px;
+}
+
+.row td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 8px 10px;
+}
+
+.row td p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Striping is index-based: with virtualization, :nth-child parity changes as rows are recycled. */
 .row[data-odd]:not(:hover) {
   background-color: var(--mantine-color-lime-0);
@@ -6,4 +44,8 @@
 .scrollbar {
   z-index: 5;
   margin-top: 54px;
+}
+
+.viewport {
+  overflow-anchor: none;
 }

@@ -35,19 +35,24 @@ const features = tableFeatures({ rowSortingFeature, columnSizingFeature })
 
 type AppointmentColumn = ColumnDef<typeof features, AppointmentDetail>
 
-const textCell: AppointmentColumn['cell'] = (info) => <p>{info.getValue<string>()}</p>
+const textCell: AppointmentColumn['cell'] = (info) => {
+  const value = info.getValue<string>()
+  return <p title={value}>{value}</p>
+}
 
 const patientColumns: AppointmentColumn[] = [
   {
     id: 'patientFirstName',
     accessorFn: (row) => row.patient.user.firstName,
     header: 'Patient first name',
+    size: 150,
     cell: textCell,
   },
   {
     id: 'patientLastName',
     accessorFn: (row) => row.patient.user.lastName,
     header: 'Patient last name',
+    size: 150,
     cell: textCell,
   },
 ]
@@ -57,12 +62,14 @@ const doctorColumns: AppointmentColumn[] = [
     id: 'doctorFirstName',
     accessorFn: (row) => row.slot.doctor.user.firstName,
     header: 'Doctor first name',
+    size: 150,
     cell: textCell,
   },
   {
     id: 'doctorLastName',
     accessorFn: (row) => row.slot.doctor.user.lastName,
     header: 'Doctor last name',
+    size: 150,
     cell: textCell,
   },
 ]
@@ -72,12 +79,14 @@ const detailColumns: AppointmentColumn[] = [
     id: 'date',
     accessorFn: (row) => row.slot.date,
     header: 'Date',
+    size: 100,
     cell: (info) => <p>{formatShortDate(info.getValue<string>())}</p>,
   },
   {
     id: 'conducted',
     accessorFn: (row) => row.conducted,
     header: 'Status',
+    size: 180,
     enableSorting: false,
     cell: ({ row }) => {
       const { cancelled, conducted } = row.original
@@ -89,12 +98,14 @@ const detailColumns: AppointmentColumn[] = [
     id: 'address',
     accessorFn: (row) => row.slot.address,
     header: 'Address',
+    size: 200,
     enableSorting: false,
     cell: textCell,
   },
   {
     id: 'edit',
     header: 'Edit',
+    size: 100,
     enableSorting: false,
     cell: ({ row }) =>
       row.original.cancelled ? null : (
@@ -117,7 +128,7 @@ const adminColumns = [...patientColumns, ...doctorColumns, ...detailColumns]
 
 const ariaSortValues = { asc: 'ascending', desc: 'descending' } as const
 
-const ROW_HEIGHT = 55
+const ROW_HEIGHT = 51
 
 const AppointmentsTable = ({
   items,
@@ -149,7 +160,7 @@ const AppointmentsTable = ({
     count: items.length,
     getScrollElement: () => scrollParent,
     estimateSize: () => ROW_HEIGHT,
-    overscan: 20,
+    overscan: 5,
   })
 
   const virtualItems = virtualizer.getVirtualItems()
@@ -169,9 +180,11 @@ const AppointmentsTable = ({
         mah='calc(100vh - 260px)'
         type='hover'
         viewportRef={setScrollParent}
-        classNames={{ scrollbar: classes.scrollbar }}
+        classNames={{ scrollbar: classes.scrollbar, viewport: classes.viewport }}
       >
         <Table
+          className={classes.table}
+          layout='fixed'
           highlightOnHover
           withColumnBorders
           withRowBorders
@@ -181,8 +194,13 @@ const AppointmentsTable = ({
           stickyHeader
           stickyHeaderOffset={0}
           w='100%'
-          miw={800}
+          miw={table.getTotalSize()}
         >
+          <colgroup>
+            {columns.map((column) => (
+              <col key={column.id} style={{ width: column.size }} />
+            ))}
+          </colgroup>
           <Table.Thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <Table.Tr key={headerGroup.id}>
@@ -198,7 +216,6 @@ const AppointmentsTable = ({
                   return (
                     <Table.Th
                       key={header.id}
-                      // w={header.column.columnDef.size}
                       aria-sort={sortDirection ? ariaSortValues[sortDirection] : undefined}
                     >
                       {header.isPlaceholder ? null : header.column.getCanSort() ? (
