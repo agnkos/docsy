@@ -104,16 +104,16 @@ const matchesWords = (
   toFilter: (word: string) => Prisma.AppointmentWhereInput,
 ): Prisma.AppointmentWhereInput => ({ AND: text.split(/\s+/).map(toFilter) })
 
-// `search` matches patient names; `doctor` matches doctor names and is admin-only
+// `patient` matches patient names; `doctor` matches doctor names and is admin-only
 const buildSearchFilter = (
   role: Role,
-  { search, doctor }: Pick<AppointmentsQuery, 'search' | 'doctor'>,
+  { patient, doctor }: Pick<AppointmentsQuery, 'patient' | 'doctor'>,
 ): Prisma.AppointmentWhereInput => {
   if (role === Role.PATIENT) return {}
 
   return {
     AND: [
-      search ? matchesWords(search, (word) => ({ patient: { user: nameFilter(word) } })) : {},
+      patient ? matchesWords(patient, (word) => ({ patient: { user: nameFilter(word) } })) : {},
       doctor && role === Role.ADMIN
         ? matchesWords(doctor, (word) => ({ slot: { doctor: { user: nameFilter(word) } } }))
         : {},
@@ -150,13 +150,13 @@ const orderByMap = {
 
 const getAppointments = async (
   user: CurrentUser,
-  { conducted, cancelled, search, doctor, sortBy, sortOrder, limit, offset }: AppointmentsQuery,
+  { conducted, cancelled, patient, doctor, sortBy, sortOrder, limit, offset }: AppointmentsQuery,
 ) => {
   const where: Prisma.AppointmentWhereInput = {
     AND: [
       buildScopeFilter(user),
       buildStatusFilter(user.role, { conducted, cancelled }),
-      buildSearchFilter(user.role, { search, doctor }),
+      buildSearchFilter(user.role, { patient, doctor }),
     ],
   }
 

@@ -4,12 +4,12 @@ import type { OnChangeFn, SortingState } from '@tanstack/react-table'
 import { DEFAULT_SORTING } from '../features/appointments/sorting'
 
 type AppointmentsFilterState = {
-  search: string
+  patientSearch: string
   doctorSearch: string
   showCancelled: boolean
   conducted: ConductedFilter
   sorting: SortingState
-  setSearch: (search: string) => void
+  setPatientSearch: (patientSearch: string) => void
   setDoctorSearch: (doctorSearch: string) => void
   setShowCancelled: (showCancelled: boolean) => void
   setConducted: (conducted: ConductedFilter) => void
@@ -20,7 +20,7 @@ type AppointmentsFilterState = {
 }
 
 const initialState = {
-  search: '',
+  patientSearch: '',
   doctorSearch: '',
   showCancelled: false,
   conducted: 'all',
@@ -29,7 +29,7 @@ const initialState = {
 
 export const useAppointmentsFilterStore = create<AppointmentsFilterState>((set) => ({
   ...initialState,
-  setSearch: (search) => set({ search }),
+  setPatientSearch: (patientSearch) => set({ patientSearch }),
   setDoctorSearch: (doctorSearch) => set({ doctorSearch }),
   setShowCancelled: (showCancelled) => set({ showCancelled }),
   setConducted: (conducted) => set({ conducted }),

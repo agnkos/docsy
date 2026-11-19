@@ -46,7 +46,7 @@ const booleanQuerySchema = z.enum(['true', 'false']).transform((value) => value 
 export const appointmentsQuerySchema = z.object({
   conducted: booleanQuerySchema.optional(),
   cancelled: booleanQuerySchema.optional(),
-  search: z.string().trim().min(1).max(100).optional(),
+  patient: z.string().trim().min(1).max(100).optional(),
   doctor: z.string().trim().min(1).max(100).optional(),
   sortBy: z
     .enum(['date', 'patientFirstName', 'patientLastName', 'doctorFirstName', 'doctorLastName'])

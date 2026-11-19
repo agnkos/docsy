@@ -77,7 +77,7 @@ export type AppointmentSortBy =
   'date' | 'patientFirstName' | 'patientLastName' | 'doctorFirstName' | 'doctorLastName'
 
 export type AppointmentsListParams = {
-  search?: string
+  patient?: string
   doctor?: string
   conducted?: boolean
   cancelled?: boolean

@@ -16,8 +16,8 @@ const SEARCH_DEBOUNCE_MS = 300
 const AppointmentsPage = () => {
   const isAdmin = useAuthStore((state) => state.user?.role === 'ADMIN')
   const {
-    search,
-    setSearch,
+    patientSearch,
+    setPatientSearch,
     doctorSearch,
     setDoctorSearch,
     showCancelled,
@@ -27,12 +27,12 @@ const AppointmentsPage = () => {
     sorting,
     setSorting,
   } = useAppointmentsFilterStore()
-  const [debouncedSearch] = useDebouncedValue(search, SEARCH_DEBOUNCE_MS)
+  const [debouncedPatientSearch] = useDebouncedValue(patientSearch, SEARCH_DEBOUNCE_MS)
   const [debouncedDoctorSearch] = useDebouncedValue(doctorSearch, SEARCH_DEBOUNCE_MS)
 
   const { data, isPending, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useInfiniteAppointments({
-      search: debouncedSearch.trim() || undefined,
+      patient: debouncedPatientSearch.trim() || undefined,
       doctor: isAdmin ? debouncedDoctorSearch.trim() || undefined : undefined,
       cancelled: isAdmin && !showCancelled ? false : undefined,
       conducted: conductedParams[conducted],
@@ -45,11 +45,13 @@ const AppointmentsPage = () => {
         <Group align='flex-end'>
           <TextInput
             label='Patient'
-            value={search}
-            onChange={(event) => setSearch(event.currentTarget.value)}
+            value={patientSearch}
+            onChange={(event) => setPatientSearch(event.currentTarget.value)}
             placeholder='Search by patient name...'
             leftSection={<Search size={16} />}
-            rightSection={search ? <CloseButton size={16} onClick={() => setSearch('')} /> : null}
+            rightSection={
+              patientSearch ? <CloseButton size={16} onClick={() => setPatientSearch('')} /> : null
+            }
             rightSectionPointerEvents='all'
             w={{ base: '100%', sm: 300 }}
           />
