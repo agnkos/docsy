@@ -16,6 +16,7 @@ export const staffNav: Record<'DOCTOR' | 'ADMIN', SidebarLink[]> = {
   ],
   ADMIN: [
     { label: 'Dashboard', to: paths.DASHBOARD, icon: ClipboardList },
+    { label: 'Appointments', to: paths.APPOINTMENTS, icon: ClipboardClock },
     { label: 'Doctors', to: paths.DOCTORS, icon: Users },
   ],
 }

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import {
   columnSizingFeature,
   rowSortingFeature,
@@ -15,12 +16,12 @@ import type { AppointmentDetail } from '../../types'
 import { formatShortDate } from '../../../../utils/helpers'
 import { paths } from '../../../../app/paths'
 import ButtonLink from '../../../../components/ui/ButtonLink'
-import { useState } from 'react'
 import classes from './AppointmentsTable.module.css'
 
 type AppointmentsTableProps = {
   items: AppointmentDetail[]
   total: number
+  isAdmin: boolean
   sorting: SortingState
   onSortingChange: OnChangeFn<SortingState>
   conducted: ConductedFilter
@@ -32,70 +33,107 @@ type AppointmentsTableProps = {
 
 const features = tableFeatures({ rowSortingFeature, columnSizingFeature })
 
-const columns: Array<ColumnDef<typeof features, AppointmentDetail>> = [
+type AppointmentColumn = ColumnDef<typeof features, AppointmentDetail>
+
+const textCell: AppointmentColumn['cell'] = (info) => {
+  const value = info.getValue<string>()
+  return <p title={value}>{value}</p>
+}
+
+const patientColumns: AppointmentColumn[] = [
   {
-    id: 'firstName',
+    id: 'patientFirstName',
     accessorFn: (row) => row.patient.user.firstName,
-    header: 'First name',
-    cell: (info) => <p>{info.getValue<string>()}</p>,
-    // size: 150,
+    header: 'Patient first name',
+    size: 150,
+    cell: textCell,
   },
   {
-    id: 'lastName',
+    id: 'patientLastName',
     accessorFn: (row) => row.patient.user.lastName,
-    header: 'Last name',
-    cell: (info) => <p>{info.getValue<string>()}</p>,
-    // size: 170,
+    header: 'Patient last name',
+    size: 150,
+    cell: textCell,
   },
+]
+
+const doctorColumns: AppointmentColumn[] = [
+  {
+    id: 'doctorFirstName',
+    accessorFn: (row) => row.slot.doctor.user.firstName,
+    header: 'Doctor first name',
+    size: 150,
+    cell: textCell,
+  },
+  {
+    id: 'doctorLastName',
+    accessorFn: (row) => row.slot.doctor.user.lastName,
+    header: 'Doctor last name',
+    size: 150,
+    cell: textCell,
+  },
+]
+
+const detailColumns: AppointmentColumn[] = [
   {
     id: 'date',
     accessorFn: (row) => row.slot.date,
     header: 'Date',
+    size: 100,
     cell: (info) => <p>{formatShortDate(info.getValue<string>())}</p>,
-    // size: 120,
   },
   {
     id: 'conducted',
     accessorFn: (row) => row.conducted,
     header: 'Status',
+    size: 180,
     enableSorting: false,
-    cell: (info) => <p>{info.getValue<boolean>() ? 'Conducted' : 'Not conducted'}</p>,
-    // size: 180,
+    cell: ({ row }) => {
+      const { cancelled, conducted } = row.original
+      if (cancelled) return <p>Cancelled</p>
+      return <p>{conducted ? 'Conducted' : 'Not conducted'}</p>
+    },
   },
   {
     id: 'address',
     accessorFn: (row) => row.slot.address,
     header: 'Address',
+    size: 200,
     enableSorting: false,
-    cell: (info) => <p>{info.getValue<string>()}</p>,
+    cell: textCell,
   },
   {
     id: 'edit',
     header: 'Edit',
+    size: 100,
     enableSorting: false,
-    cell: ({ row }) => (
-      <ButtonLink
-        size='compact-md'
-        px={14}
-        fw={500}
-        to={paths.APPOINTMENT}
-        params={{ appointmentId: row.original.id }}
-        state={{ fromTable: true }}
-      >
-        Edit
-      </ButtonLink>
-    ),
-    // size: 90,
+    cell: ({ row }) =>
+      row.original.cancelled ? null : (
+        <ButtonLink
+          size='compact-md'
+          px={14}
+          fw={500}
+          to={paths.APPOINTMENT}
+          params={{ appointmentId: row.original.id }}
+          state={{ fromTable: true }}
+        >
+          Edit
+        </ButtonLink>
+      ),
   },
 ]
 
+const staffColumns = [...patientColumns, ...detailColumns]
+const adminColumns = [...patientColumns, ...doctorColumns, ...detailColumns]
+
 const ariaSortValues = { asc: 'ascending', desc: 'descending' } as const
 
-const ROW_HEIGHT = 55
+const ROW_HEIGHT = 51
 
 const AppointmentsTable = ({
   items,
   total,
+  isAdmin,
   sorting,
   onSortingChange,
   conducted,
@@ -104,6 +142,7 @@ const AppointmentsTable = ({
   isFetchingNextPage,
   fetchNextPage,
 }: AppointmentsTableProps) => {
+  const columns = isAdmin ? adminColumns : staffColumns
   const table = useTable({
     key: 'appointments-table',
     features,
@@ -121,25 +160,31 @@ const AppointmentsTable = ({
     count: items.length,
     getScrollElement: () => scrollParent,
     estimateSize: () => ROW_HEIGHT,
-    overscan: 20,
+    overscan: 5,
   })
 
   const virtualItems = virtualizer.getVirtualItems()
   const rows = table.getRowModel().rows
 
-  const handleBottomReached = () => {
-    if (hasNextPage && !isFetchingNextPage) fetchNextPage()
-  }
+  // State-based instead of ScrollArea's onBottomReached, which only fires on a scroll transition
+  // and is missed when the list changes while the viewport is already at the bottom
+  const lastVisibleIndex = virtualItems.at(-1)?.index
+  useEffect(() => {
+    if (lastVisibleIndex === undefined) return
+    if (lastVisibleIndex >= items.length - 1 && hasNextPage && !isFetchingNextPage) fetchNextPage()
+  }, [lastVisibleIndex, items.length, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   return (
     <>
       <ScrollArea.Autosize
         mah='calc(100vh - 260px)'
         type='hover'
-        onBottomReached={handleBottomReached}
         viewportRef={setScrollParent}
+        classNames={{ scrollbar: classes.scrollbar, viewport: classes.viewport }}
       >
         <Table
+          className={classes.table}
+          layout='fixed'
           highlightOnHover
           withColumnBorders
           withRowBorders
@@ -149,8 +194,13 @@ const AppointmentsTable = ({
           stickyHeader
           stickyHeaderOffset={0}
           w='100%'
-          miw={800}
+          miw={table.getTotalSize()}
         >
+          <colgroup>
+            {columns.map((column) => (
+              <col key={column.id} style={{ width: column.size }} />
+            ))}
+          </colgroup>
           <Table.Thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <Table.Tr key={headerGroup.id}>
@@ -166,7 +216,6 @@ const AppointmentsTable = ({
                   return (
                     <Table.Th
                       key={header.id}
-                      // w={header.column.columnDef.size}
                       aria-sort={sortDirection ? ariaSortValues[sortDirection] : undefined}
                     >
                       {header.isPlaceholder ? null : header.column.getCanSort() ? (
