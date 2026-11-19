@@ -12,6 +12,7 @@ A pet project — a web app for booking medical appointments. Users can register
 - Tanstack Router
 - React Hook Form + Zod (forms & validation)
 - TanStack Query (data fetching/caching)
+- TanStack Table + TanStack Virtual
 - Zustand (state management)
 - Axios (HTTP client)
 - lucide-react (icons)
