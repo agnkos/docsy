@@ -4,8 +4,11 @@ import cors from '@fastify/cors'
 import cookie from '@fastify/cookie'
 import jwt from '@fastify/jwt'
 import { ZodTypeProvider, validatorCompiler, serializerCompiler } from 'fastify-type-provider-zod'
+import rateLimit from '@fastify/rate-limit'
+
 import { registerErrorHandler } from './middleware/error-handler'
 import { routes } from './routes'
+import { ACCESS_TOKEN_TTL_SECONDS } from './modules/auth/auth.constants'
 
 const fastify = Fastify({
   logger: true,
@@ -24,9 +27,14 @@ fastify.register(cors, {
 
 fastify.register(jwt, {
   secret: process.env.JWT_ACCESS_SECRET!,
+  sign: { expiresIn: `${ACCESS_TOKEN_TTL_SECONDS}s` },
 })
 
 fastify.register(cookie)
+
+fastify.register(rateLimit, { global: false })
+
+fastify.decorateRequest('currentUser')
 
 fastify.register(routes)
 

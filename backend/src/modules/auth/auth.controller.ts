@@ -2,10 +2,13 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 
 import { userService } from '../user/user.service'
 import { authService } from './auth.service'
-import { REFRESH_TOKEN_COOKIE_NAME } from './auth.constants'
+import { ACCESS_TOKEN_TTL_SECONDS, REFRESH_TOKEN_COOKIE_NAME } from './auth.constants'
 import { getRefreshCookieOptions, clearRefreshCookieOptions } from './auth.cookies'
 import { UnauthorizedError } from '../../errors/http-error'
 import type { LoginBody } from './auth.schemas'
+
+const signAccessToken = (reply: FastifyReply, userId: string) =>
+  reply.jwtSign({ sub: userId })
 
 const login = async (request: FastifyRequest<{ Body: LoginBody }>, reply: FastifyReply) => {
   const user = await authService.validateCredentials(request.body.email, request.body.password)
@@ -14,8 +17,8 @@ const login = async (request: FastifyRequest<{ Body: LoginBody }>, reply: Fastif
     ip: request.ip,
   })
   reply.setCookie(REFRESH_TOKEN_COOKIE_NAME, token, getRefreshCookieOptions())
-  const accessToken = await reply.jwtSign({ sub: user.id }, { expiresIn: '15m' })
-  reply.code(200).send({ accessToken, user })
+  const accessToken = await signAccessToken(reply, user.id)
+  reply.code(200).send({ accessToken, expiresIn: ACCESS_TOKEN_TTL_SECONDS, user })
 }
 
 const me = async (request: FastifyRequest, reply: FastifyReply) => {
@@ -33,8 +36,8 @@ const refresh = async (request: FastifyRequest, reply: FastifyReply) => {
 
   try {
     const { userId } = await authService.verifySession(rawToken)
-    const accessToken = await reply.jwtSign({ sub: userId }, { expiresIn: '15m' })
-    reply.code(200).send({ accessToken })
+    const accessToken = await signAccessToken(reply, userId)
+    reply.code(200).send({ accessToken, expiresIn: ACCESS_TOKEN_TTL_SECONDS })
   } catch (err) {
     reply.clearCookie(REFRESH_TOKEN_COOKIE_NAME, clearRefreshCookieOptions())
     throw err

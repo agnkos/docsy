@@ -15,9 +15,9 @@ const bootstrapAuth = async () => {
   }
 
   try {
-    const accessToken = await refreshAccessToken()
+    await refreshAccessToken()
     const user = await meRequest()
-    useAuthStore.getState().setSession(user, accessToken)
+    useAuthStore.getState().setUser(user)
   } catch (error) {
     useAuthStore.getState().clearSession()
     if (!isUnauthorized(error)) {

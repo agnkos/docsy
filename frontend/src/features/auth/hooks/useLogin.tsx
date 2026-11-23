@@ -13,7 +13,7 @@ export const useLogin = () => {
     mutationFn: loginRequest,
     onSuccess: (data) => {
       queryClient.clear()
-      setSession(data.user, data.accessToken)
+      setSession(data.user, data.accessToken, data.expiresIn)
     },
   })
 }

@@ -34,7 +34,7 @@ Rules for all code in this repo. Architecture details live in `CLAUDE.md`; this 
 
 - Respect module layering: `routes` (schemas + preHandlers) → `controller` → `service` (the only place that touches Prisma). Controllers don't contain business logic; services don't touch `request`/`reply`.
 - Every route declares Zod schemas for params/query/body **and** response. Responses must never expose sensitive fields (password hashes, token hashes).
-- Protect every non-public route: `preHandler: [authenticate, requireRole(...), authorize(policy)]`. Resource-level access checks go in a `*.policy.ts`, not inline in controllers.
+- Protect every non-public route: `onRequest: authenticate` (or `fastify.addHook('onRequest', authenticate)` in modules with no public routes) plus `preHandler: [requireRole(...), authorize(policy)]`. Resource-level access checks go in a `*.policy.ts`, not inline in controllers.
 - Throw errors from `src/errors/http-error.ts` (`middleware/error-handler.ts` maps them to responses); don't hand-build error responses or swallow errors.
 - Import the Prisma client from `backend/generated/prisma`, never `@prisma/client`.
 - Use `prisma.$transaction` when several writes must succeed or fail together (e.g. booking a slot). Use `select`/`include` deliberately; avoid N+1 queries.
