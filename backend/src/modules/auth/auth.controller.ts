@@ -8,7 +8,7 @@ import { UnauthorizedError } from '../../errors/http-error'
 import type { LoginBody } from './auth.schemas'
 
 const signAccessToken = (reply: FastifyReply, userId: string) =>
-  reply.jwtSign({ sub: userId }, { expiresIn: `${ACCESS_TOKEN_TTL_SECONDS}s` })
+  reply.jwtSign({ sub: userId })
 
 const login = async (request: FastifyRequest<{ Body: LoginBody }>, reply: FastifyReply) => {
   const user = await authService.validateCredentials(request.body.email, request.body.password)

@@ -21,10 +21,11 @@ import { requireRole } from '../../middleware/requireRole'
 import { Role } from '../../../generated/prisma/enums'
 
 export const appointmentRoutes: FastifyPluginAsyncZod = async (fastify) => {
+  fastify.addHook('onRequest', authenticate)
+
   fastify.post(
     '/appointments',
     {
-      preHandler: authenticate,
       schema: {
         body: createAppointmentBodySchema,
         response: { 201: appointmentResponseSchema },
@@ -36,7 +37,7 @@ export const appointmentRoutes: FastifyPluginAsyncZod = async (fastify) => {
   fastify.patch(
     '/appointments/:id/cancel',
     {
-      preHandler: [authenticate, authorize(cancelAppointmentPolicy)],
+      preHandler: authorize(cancelAppointmentPolicy),
       schema: {
         params: appointmentIdParamsSchema,
         response: { 200: appointmentResponseSchema },
@@ -48,7 +49,6 @@ export const appointmentRoutes: FastifyPluginAsyncZod = async (fastify) => {
   fastify.get(
     '/appointments',
     {
-      preHandler: authenticate,
       schema: {
         querystring: appointmentsQuerySchema,
         response: { 200: appointmentsResponseSchema },
@@ -60,7 +60,7 @@ export const appointmentRoutes: FastifyPluginAsyncZod = async (fastify) => {
   fastify.get(
     '/appointments/:id',
     {
-      preHandler: [authenticate, authorize(viewAppointmentPolicy)],
+      preHandler: authorize(viewAppointmentPolicy),
       schema: {
         params: appointmentIdParamsSchema,
         response: { 200: appointmentDetailResponseSchema },
@@ -72,11 +72,7 @@ export const appointmentRoutes: FastifyPluginAsyncZod = async (fastify) => {
   fastify.patch(
     '/appointments/:id',
     {
-      preHandler: [
-        authenticate,
-        requireRole(Role.DOCTOR, Role.ADMIN),
-        authorize(updateAppointmentPolicy),
-      ],
+      preHandler: [requireRole(Role.DOCTOR, Role.ADMIN), authorize(updateAppointmentPolicy)],
       schema: {
         params: appointmentIdParamsSchema,
         body: updateAppointmentBodySchema,

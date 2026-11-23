@@ -12,7 +12,7 @@ import { requireRole } from '../../middleware/requireRole'
 import { Role } from '../../../generated/prisma/enums'
 
 export const slotRoutes: FastifyPluginAsyncZod = async (fastify) => {
-  fastify.addHook('preHandler', authenticate)
+  fastify.addHook('onRequest', authenticate)
 
   fastify.get(
     '/slots',

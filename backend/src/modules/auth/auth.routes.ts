@@ -10,6 +10,7 @@ export const authRoutes: FastifyPluginAsyncZod = async (fastify) => {
   fastify.post(
     '/auth/login',
     {
+      config: { rateLimit: { max: 5, timeWindow: 60000 } },
       schema: {
         body: loginBodySchema,
         response: {
@@ -23,7 +24,7 @@ export const authRoutes: FastifyPluginAsyncZod = async (fastify) => {
   fastify.get(
     '/auth/me',
     {
-      preHandler: authenticate,
+      onRequest: authenticate,
       schema: {
         response: {
           200: userResponseSchema,

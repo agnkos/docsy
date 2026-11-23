@@ -41,7 +41,8 @@ export const userRoutes: FastifyPluginAsyncZod = async (fastify) => {
   fastify.get(
     '/users/:id',
     {
-      preHandler: [authenticate, authorize(userSelfOrAdminPolicy)],
+      onRequest: authenticate,
+      preHandler: authorize(userSelfOrAdminPolicy),
       schema: {
         params: userIdParamsSchema,
         response: {
@@ -55,7 +56,8 @@ export const userRoutes: FastifyPluginAsyncZod = async (fastify) => {
   fastify.patch(
     '/users/:id',
     {
-      preHandler: [authenticate, authorize(userSelfOrAdminPolicy)],
+      onRequest: authenticate,
+      preHandler: authorize(userSelfOrAdminPolicy),
       schema: {
         params: userIdParamsSchema,
         body: updateUserBodySchema,
@@ -70,7 +72,8 @@ export const userRoutes: FastifyPluginAsyncZod = async (fastify) => {
   fastify.delete(
     '/users/:id',
     {
-      preHandler: [authenticate, authorize(userSelfOrAdminPolicy)],
+      onRequest: authenticate,
+      preHandler: authorize(userSelfOrAdminPolicy),
       schema: {
         params: userIdParamsSchema,
         response: {
