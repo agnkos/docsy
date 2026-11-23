@@ -14,6 +14,7 @@ export type AuthUser = {
 
 export type AuthResponse = {
   accessToken: string
+  expiresIn: number
   user: AuthUser
 }
 
@@ -28,6 +29,7 @@ export type RegisterResponse = AuthUser
 
 export type RefreshResponse = {
   accessToken: string
+  expiresIn: number
 }
 
 export type UserRole = 'PATIENT' | 'DOCTOR' | 'ADMIN'

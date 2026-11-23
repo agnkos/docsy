@@ -1,5 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
+import type { RefreshResponse } from '../features/auth/types'
 import { useAuthStore } from '../stores/authStore'
 
 export const apiClient = axios.create({
@@ -7,23 +8,22 @@ export const apiClient = axios.create({
   withCredentials: true,
 })
 
-apiClient.interceptors.request.use((config) => {
-  const accessToken = useAuthStore.getState().accessToken
-  if (accessToken) {
-    config.headers.set('Authorization', `Bearer ${accessToken}`)
-  }
-  return config
-})
+// Refresh slightly early so a token never expires while the request is in flight
+const EXPIRY_LEEWAY_MS = 30_000
 
-let refreshPromise: Promise<string> | null = null
+const AUTH_URLS = ['/auth/refresh', '/auth/login', '/auth/logout']
 
-export const refreshAccessToken = (): Promise<string> => {
+const isAuthUrl = (url = '') => AUTH_URLS.some((authUrl) => url.includes(authUrl))
+
+let refreshPromise: Promise<RefreshResponse> | null = null
+
+export const refreshAccessToken = (): Promise<RefreshResponse> => {
   if (!refreshPromise) {
     refreshPromise = apiClient
-      .post<{ accessToken: string }>('/auth/refresh')
+      .post<RefreshResponse>('/auth/refresh')
       .then((r) => {
-        useAuthStore.getState().setAccessToken(r.data.accessToken)
-        return r.data.accessToken
+        useAuthStore.getState().setAccessToken(r.data.accessToken, r.data.expiresIn)
+        return r.data
       })
       .finally(() => {
         refreshPromise = null
@@ -32,13 +32,37 @@ export const refreshAccessToken = (): Promise<string> => {
   return refreshPromise
 }
 
+apiClient.interceptors.request.use(async (config) => {
+  if (isAuthUrl(config.url)) {
+    return config
+  }
+
+  const { accessToken, accessTokenExpiresAt } = useAuthStore.getState()
+  const isExpiringSoon =
+    accessTokenExpiresAt !== null && accessTokenExpiresAt - Date.now() < EXPIRY_LEEWAY_MS
+
+  // If the refresh fails, send the old token and let the 401 handler below log the user out
+  const token =
+    accessToken && isExpiringSoon
+      ? await refreshAccessToken()
+          .then((r) => r.accessToken)
+          .catch(() => accessToken)
+      : accessToken
+
+  if (token) {
+    config.headers.set('Authorization', `Bearer ${token}`)
+  }
+  return config
+})
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined
+    const originalRequest = error.config as
+      (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined
     const url = originalRequest?.url ?? ''
 
-    if (url.includes('/auth/refresh') || url.includes('/auth/login')) {
+    if (isAuthUrl(url)) {
       return Promise.reject(error)
     }
 
@@ -49,7 +73,7 @@ apiClient.interceptors.response.use(
     originalRequest._retry = true
 
     try {
-      const newAccessToken = await refreshAccessToken()
+      const { accessToken: newAccessToken } = await refreshAccessToken()
       originalRequest.headers.set('Authorization', `Bearer ${newAccessToken}`)
       return apiClient(originalRequest)
     } catch (refreshError) {
