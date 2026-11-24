@@ -36,7 +36,7 @@ A pet project — a web app for booking medical appointments. Users can register
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/akosiedowska/docsy.git
+git clone https://github.com/agnkos/docsy.git
 cd docsy
 ```
 
