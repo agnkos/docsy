@@ -12,6 +12,7 @@ export const theme = createTheme({
   fontFamily: 'Poppins, sans-serif',
   primaryColor: 'violet',
   black: palette.ink,
+  cursorType: 'pointer',
   colors: {
     violet: [
       '#F5F1FD',

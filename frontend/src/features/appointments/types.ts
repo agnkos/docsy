@@ -83,6 +83,8 @@ export type AppointmentsListParams = {
   cancelled?: boolean
   sortBy: AppointmentSortBy
   sortOrder: 'asc' | 'desc'
+  dateFrom?: string
+  dateTo?: string
 }
 
 export type UpdateAppointmentBody = {

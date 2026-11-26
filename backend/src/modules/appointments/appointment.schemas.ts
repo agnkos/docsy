@@ -48,6 +48,8 @@ export const appointmentsQuerySchema = z.object({
   cancelled: booleanQuerySchema.optional(),
   patient: z.string().trim().min(1).max(100).optional(),
   doctor: z.string().trim().min(1).max(100).optional(),
+  dateFrom: z.iso.date().optional(),
+  dateTo: z.iso.date().optional(),
   sortBy: z
     .enum(['date', 'patientFirstName', 'patientLastName', 'doctorFirstName', 'doctorLastName'])
     .default('date'),
