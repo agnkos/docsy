@@ -121,6 +121,24 @@ const buildSearchFilter = (
   }
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000
+
+const buildDateFilter = ({
+  dateFrom,
+  dateTo,
+}: Pick<AppointmentsQuery, 'dateFrom' | 'dateTo'>): Prisma.AppointmentWhereInput => {
+  if (!dateFrom && !dateTo) return {}
+
+  return {
+    slot: {
+      date: {
+        gte: dateFrom ? new Date(dateFrom) : undefined,
+        lt: dateTo ? new Date(new Date(dateTo).getTime() + DAY_MS) : undefined,
+      },
+    },
+  }
+}
+
 const orderByMap = {
   date: (order) => [{ slot: { date: order } }],
   patientFirstName: (order) => [
@@ -150,13 +168,25 @@ const orderByMap = {
 
 const getAppointments = async (
   user: CurrentUser,
-  { conducted, cancelled, patient, doctor, sortBy, sortOrder, limit, offset }: AppointmentsQuery,
+  {
+    conducted,
+    cancelled,
+    patient,
+    dateFrom,
+    dateTo,
+    doctor,
+    sortBy,
+    sortOrder,
+    limit,
+    offset,
+  }: AppointmentsQuery,
 ) => {
   const where: Prisma.AppointmentWhereInput = {
     AND: [
       buildScopeFilter(user),
       buildStatusFilter(user.role, { conducted, cancelled }),
       buildSearchFilter(user.role, { patient, doctor }),
+      buildDateFilter({ dateFrom, dateTo }),
     ],
   }
 
