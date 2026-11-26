@@ -5,6 +5,7 @@ import { theme } from '../styles/theme'
 import { MantineProvider } from '@mantine/core'
 
 import '@mantine/core/styles.css'
+import '@mantine/dates/styles.css'
 
 export const AppProviders = ({ children }: { children: React.ReactNode }) => {
   return (

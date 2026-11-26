@@ -8,6 +8,7 @@ import {
 import type { ColumnDef, OnChangeFn, SortingState } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Center, Group, ScrollArea, Select, Table, Text, UnstyledButton } from '@mantine/core'
+import type { DatesRangeValue } from '@mantine/dates'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 
 import { conductedOptions, isConductedFilter } from '../../conductedFilter'
@@ -16,6 +17,8 @@ import type { AppointmentDetail } from '../../types'
 import { formatShortDate } from '../../../../utils/helpers'
 import { paths } from '../../../../app/paths'
 import ButtonLink from '../../../../components/ui/ButtonLink'
+import { DateFilter } from './AppointmentsTableComponents'
+
 import classes from './AppointmentsTable.module.css'
 
 type AppointmentsTableProps = {
@@ -26,6 +29,8 @@ type AppointmentsTableProps = {
   onSortingChange: OnChangeFn<SortingState>
   conducted: ConductedFilter
   onConductedChange: (value: ConductedFilter) => void
+  date: DatesRangeValue<string>
+  onDateChange: (date: DatesRangeValue<string>) => void
   hasNextPage: boolean
   isFetchingNextPage: boolean
   fetchNextPage: () => void
@@ -141,6 +146,8 @@ const AppointmentsTable = ({
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
+  date,
+  onDateChange,
 }: AppointmentsTableProps) => {
   const columns = isAdmin ? adminColumns : staffColumns
   const table = useTable({
@@ -219,15 +226,20 @@ const AppointmentsTable = ({
                       aria-sort={sortDirection ? ariaSortValues[sortDirection] : undefined}
                     >
                       {header.isPlaceholder ? null : header.column.getCanSort() ? (
-                        <UnstyledButton
-                          onClick={header.column.getToggleSortingHandler()}
-                          fw='inherit'
-                        >
-                          <Group gap={6} wrap='nowrap'>
-                            <table.FlexRender header={header} />
-                            <SortIcon size={14} opacity={sortDirection ? 1 : 0.45} />
-                          </Group>
-                        </UnstyledButton>
+                        <Group gap={4} wrap='nowrap'>
+                          <UnstyledButton
+                            onClick={header.column.getToggleSortingHandler()}
+                            fw='inherit'
+                          >
+                            <Group gap={6} wrap='nowrap'>
+                              <table.FlexRender header={header} />
+                              <SortIcon size={14} opacity={sortDirection ? 1 : 0.45} />
+                            </Group>
+                          </UnstyledButton>
+                          {header.column.id === 'date' && (
+                            <DateFilter value={date} onChange={onDateChange} />
+                          )}
+                        </Group>
                       ) : header.column.id === 'conducted' ? (
                         <Select
                           aria-label='Filter by status'

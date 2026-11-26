@@ -26,6 +26,8 @@ const AppointmentsPage = () => {
     setConducted,
     sorting,
     setSorting,
+    date,
+    setDate,
   } = useAppointmentsFilterStore()
   const [debouncedPatientSearch] = useDebouncedValue(patientSearch, SEARCH_DEBOUNCE_MS)
   const [debouncedDoctorSearch] = useDebouncedValue(doctorSearch, SEARCH_DEBOUNCE_MS)
@@ -95,6 +97,8 @@ const AppointmentsPage = () => {
           hasNextPage={hasNextPage}
           isFetchingNextPage={isFetchingNextPage}
           fetchNextPage={fetchNextPage}
+          date={date}
+          onDateChange={setDate}
         />
       )}
     </Stack>

@@ -59,13 +59,25 @@ npm run db:up
 
 This starts a PostgreSQL container (via `docker-compose.yml`) on `localhost:5433`.
 
-### 4. Run database migrations
+### 4. Generate Prisma Client
+
+```bash
+npm run prisma:generate
+```
+
+### 5. Run database migrations
 
 ```bash
 npm run prisma:migrate
 ```
 
-### 5. Start the backend
+### 6. Seed the database
+
+```bash
+npm run prisma:seed
+```
+
+### 7. Start the backend
 
 ```bash
 npm run dev
@@ -73,7 +85,7 @@ npm run dev
 
 The API runs at `http://localhost:3000`.
 
-### 6. Start the frontend
+### 8. Start the frontend
 
 In a separate terminal:
 
