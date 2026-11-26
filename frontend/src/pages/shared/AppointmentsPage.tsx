@@ -29,6 +29,8 @@ const AppointmentsPage = () => {
     date,
     setDate,
   } = useAppointmentsFilterStore()
+  const [dateFrom, dateTo] = date
+  const hasDateRange = dateFrom !== null && dateTo !== null
   const [debouncedPatientSearch] = useDebouncedValue(patientSearch, SEARCH_DEBOUNCE_MS)
   const [debouncedDoctorSearch] = useDebouncedValue(doctorSearch, SEARCH_DEBOUNCE_MS)
 
@@ -38,6 +40,8 @@ const AppointmentsPage = () => {
       doctor: isAdmin ? debouncedDoctorSearch.trim() || undefined : undefined,
       cancelled: isAdmin && !showCancelled ? false : undefined,
       conducted: conductedParams[conducted],
+      dateFrom: hasDateRange ? dateFrom : undefined,
+      dateTo: hasDateRange ? dateTo : undefined,
       ...toSortParams(sorting),
     })
 

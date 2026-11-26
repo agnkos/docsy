@@ -1,8 +1,8 @@
 import { create } from 'zustand'
-import type { ConductedFilter } from '../features/appointments/conductedFilter'
 import type { DatesRangeValue } from '@mantine/dates'
 import type { OnChangeFn, SortingState } from '@tanstack/react-table'
 
+import type { ConductedFilter } from '../features/appointments/conductedFilter'
 import { DEFAULT_SORTING } from '../features/appointments/sorting'
 
 type AppointmentsFilterState = {
